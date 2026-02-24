@@ -68,11 +68,29 @@
       cursor: pointer;
       font-size: 1.3rem;
     }
+    .hamburger {
+      position: relative;
+      width: 30px;
+      height: 20px;
+    }
     .hamburger div {
-      width: 24px;
+      position: absolute;
+      width: 100%;
       height: 3px;
       background: var(--text);
-      margin: 4px 0;
+      transition: all 0.3s;
+    }
+    .hamburger div:nth-child(1) { top: 0; }
+    .hamburger div:nth-child(2) { top: 8px; }
+    .hamburger div:nth-child(3) { top: 16px; }
+    .menu.open .hamburger div:nth-child(1) {
+      transform: rotate(45deg);
+      top: 8px;
+    }
+    .menu.open .hamburger div:nth-child(2) { opacity: 0; }
+    .menu.open .hamburger div:nth-child(3) {
+      transform: rotate(-45deg);
+      top: 8px;
     }
     .menu {
       position: fixed;
@@ -95,11 +113,11 @@
       cursor: pointer;
     }
     .menu-item:hover { color: var(--primary); }
-    .container { padding: 80px 20px 100px; max-width: 1200px; margin: 0 auto; }
+    .container { padding: 80px 20px 100px; max-width: 1200px; margin: 0 auto; overflow-x: hidden; }
     .search-box { text-align: center; margin-bottom: 20px; }
     #searchInput {
-      width: 100%;
-      max-width: 500px;
+      width: 90%;
+      max-width: 600px;
       padding: 12px 20px;
       border: 2px solid var(--border);
       border-radius: 30px;
@@ -107,6 +125,12 @@
       color: var(--text);
       font-size: 1rem;
       outline: none;
+      box-sizing: border-box;
+      margin: 0 auto;
+      display: block;
+    }
+    @media (max-width: 600px) {
+      #searchInput { width: 95%; padding: 10px 15px; }
     }
     .chips {
       display: flex;
@@ -126,6 +150,7 @@
       white-space: nowrap;
       cursor: pointer;
       transition: 0.3s;
+      flex-shrink: 0;
     }
     .chip.active, .chip:hover {
       background: var(--primary);
@@ -154,6 +179,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center;
     }
     .play-icon {
       position: absolute;
@@ -246,21 +272,35 @@
       align-items: center;
       justify-content: center;
       z-index: 1500;
+      flex-direction: column;
     }
-    .modal iframe {
+    .modal-content {
       width: 90%;
       max-width: 900px;
       height: 80vh;
+      position: relative;
+    }
+    .modal iframe {
+      width: 100%;
+      height: 100%;
       border: none;
     }
-    .modal-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      color: white;
-      font-size: 40px;
-      cursor: pointer;
+    .modal-controls {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 15px;
     }
+    .modal-btn {
+      padding: 10px 30px;
+      border-radius: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+    .modal-btn.fav { background: #ff3366; }
     #toast {
       position: fixed;
       bottom: 30px;
@@ -285,6 +325,13 @@
       animation: loading 1.5s infinite;
       border-radius: 12px;
       aspect-ratio: 9/16;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-sec);
+      font-size: 0.8rem;
+      margin-top: 40px;
     }
   </style>
 </head>
@@ -324,13 +371,13 @@
   </div>
 
   <div class="chips" id="chips">
-    <div class="chip active" data-query="trending vertical">Trending</div>
-    <div class="chip" data-query="vertical pov">POV</div>
-    <div class="chip" data-query="vertical solo">Solo</div>
-    <div class="chip" data-query="vertical blowjob">Blowjob</div>
-    <div class="chip" data-query="vertical 4k">4K</div>
-    <div class="chip" data-query="vertical pmv">PMV</div>
-    <div class="chip" data-query="vertical amateur">Amateur</div>
+    <div class="chip active" data-query="trending">Trending</div>
+    <div class="chip" data-query="pov">POV</div>
+    <div class="chip" data-query="solo">Solo</div>
+    <div class="chip" data-query="blowjob">Blowjob</div>
+    <div class="chip" data-query="4k">4K</div>
+    <div class="chip" data-query="pmv">PMV</div>
+    <div class="chip" data-query="amateur">Amateur</div>
   </div>
 
   <div class="video-grid" id="videoGrid"></div>
@@ -339,19 +386,30 @@
 </div>
 
 <div class="modal" id="modal">
-  <span class="modal-close" onclick="closeModal()">×</span>
-  <iframe id="player" allowfullscreen></iframe>
+  <div class="modal-content">
+    <iframe id="player" allowfullscreen></iframe>
+  </div>
+  <div class="modal-controls">
+    <button class="modal-btn" onclick="shareVideo()">Share</button>
+    <button class="modal-btn" onclick="closeModal()">Tutup</button>
+    <button class="modal-btn fav" onclick="toggleFavorite()">Favorite</button>
+  </div>
 </div>
 
 <div id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
 
 <div id="toast"></div>
 
+<footer>
+  18+ Only • Disclaimer • © Mostvert
+</footer>
+
 <script>
   const API_BASE = 'https://www.eporner.com/api/v2/video/search/';
-  let currentQuery = 'vertical video'; // default halaman utama
+  let currentQuery = 'vertical video';
   let currentPage = 1;
   let isLoading = false;
+  let favorites = JSON.parse(localStorage.getItem('mostvertFavorites')) || [];
 
   if (!localStorage.getItem('ageVerified')) {
     document.getElementById('splash').style.display = 'flex';
@@ -384,27 +442,33 @@
   function goHome() {
     currentQuery = 'vertical video';
     currentPage = 1;
+    document.getElementById('mainContent').style.display = 'block';
     document.getElementById('videoGrid').innerHTML = '';
     loadVideos();
     toggleMenu();
   }
 
   function goCategories() {
-    document.getElementById('mainContent').innerHTML = `
-      <h2>Kategori Vertical Videos</h2>
-      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; padding:20px;">
-        ${['Amateur','Anal','Big Tits','Blowjob','Lesbian','MILF','Teen','POV','Creampie','Cumshot','Asian','Ebony','Latina','Interracial','BDSM'].map(cat => `
-          <div style="background:var(--card-bg); padding:20px; border-radius:12px; text-align:center; cursor:pointer;" onclick="goCategory('${cat}')">
-            ${cat}
+    document.getElementById('mainContent').innerHTML = '<p>Loading categories...</p>';
+    // Load kategori dengan thumbnail pertama
+    const categories = ['Amateur','Anal','Big Tits','Blowjob','Lesbian','MILF','Teen','POV','Creampie','Cumshot','Asian','Ebony','Latina','Interracial','BDSM'];
+    let html = '<h2>Kategori Videos</h2><div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; padding:20px;">';
+    categories.forEach(cat => {
+      html += `
+        <div style="background:var(--card-bg); border-radius:12px; overflow:hidden; cursor:pointer;" onclick="goCategory('${cat}')">
+          <div style="aspect-ratio:9/16; background:#000; position:relative;">
+            <img src="https://via.placeholder.com/260x400?text=${cat}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
+            <div style="position:absolute; bottom:10px; left:10px; color:white; background:rgba(0,0,0,0.6); padding:5px 10px; border-radius:8px;">${cat}</div>
           </div>
-        `).join('')}
-      </div>
-      <button style="margin:30px auto; display:block; padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:30px;" onclick="goHome()">Back to Home</button>
-    `;
+        </div>`;
+    });
+    html += '</div>';
+    html += '<button style="margin:30px auto; display:block; padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:30px;" onclick="goHome()">Back to Home</button>';
+    document.getElementById('mainContent').innerHTML = html;
   }
 
   function goCategory(cat) {
-    currentQuery = `${cat} vertical`;
+    currentQuery = `${cat}`;
     document.getElementById('mainContent').innerHTML = '<p>Loading...</p>';
     loadVideos();
   }
@@ -427,7 +491,7 @@
   function performSearch() {
     const q = document.getElementById('searchInput').value.trim();
     if (!q) return;
-    currentQuery = q; // search manual tanpa tambahan vertical
+    currentQuery = q;
     currentPage = 1;
     document.getElementById('videoGrid').innerHTML = '';
     loadVideos();
@@ -438,6 +502,7 @@
     isLoading = true;
 
     const grid = document.getElementById('videoGrid');
+    if (!grid) return;
     grid.innerHTML = '';
     for(let i = 0; i < 6; i++) {
       const skel = document.createElement('div');
@@ -463,7 +528,7 @@
       document.querySelectorAll('.skeleton').forEach(s => s.remove());
 
       if (videos.length === 0) {
-        grid.innerHTML = '<p style="text-align:center;color:red;">Tidak ada video ditemukan. Coba keyword lain atau refresh!</p>';
+        grid.innerHTML = '<p style="text-align:center;color:red;">Tidak ada video ditemukan. Coba keyword lain seperti "hot", "pov", "amateur", "pmv" atau refresh!</p>';
       }
 
       videos.forEach((v, i) => {
@@ -484,8 +549,12 @@
           <div class="info">
             <div class="title">${v.title.substring(0,60)}${v.title.length>60?'...':''}</div>
             <div class="stats">${v.views || '0'} views • ${v.length_min || '?'} min</div>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn fav" onclick="toggleFavorite('${v.id}', '${v.title.replace(/'/g, "\\'")}', '${v.default_thumb?.src || ''}', event)">❤️</button>
           </div>`;
-        card.onclick = () => {
+        card.onclick = (e) => {
+          if (e.target.classList.contains('fav')) return;
           if (v.embed) {
             document.getElementById('player').src = v.embed + '?autoplay=1';
             document.getElementById('modal').style.display = 'flex';
@@ -514,6 +583,25 @@
     document.getElementById('player').src = '';
   }
 
+  function shareVideo() {
+    const url = document.getElementById('player').src.split('?')[0];
+    navigator.clipboard.writeText(url);
+    showToast('Link disalin!');
+  }
+
+  function toggleFavorite(id, title, thumb, e) {
+    e.stopPropagation();
+    const index = favorites.findIndex(f => f.id === id);
+    if (index === -1) {
+      favorites.push({id, title, thumb});
+      e.target.textContent = '❤️';
+    } else {
+      favorites.splice(index, 1);
+      e.target.textContent = '🤍';
+    }
+    localStorage.setItem('mostvertFavorites', JSON.stringify(favorites));
+  }
+
   window.onscroll = () => {
     document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 300);
   };
@@ -526,6 +614,13 @@
       loadVideos();
     }
   };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
 </script>
 </body>
 </html>
