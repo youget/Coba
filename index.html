@@ -3,1196 +3,529 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosplay Gallery • SFW</title>
+  <title>Mostvert - Vertical Video</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     :root {
-      --primary: #ff6b6b;
-      --secondary: #4ecdc4;
-      --accent: #ffd166;
-      --dark: #1a1a1a;
-      --light: #f8f9fa;
-      --gray: #6c757d;
-      --success: #28a745;
-      --warning: #ffc107;
-      --danger: #dc3545;
-      
-      /* Light Mode */
-      --bg-primary: #ffffff;
-      --bg-secondary: #f5f5f5;
-      --text-primary: #1a1a1a;
-      --text-secondary: #6c757d;
-      --border-color: #dee2e6;
+      --bg: #0a0a0a;
+      --card-bg: #1a1a1a;
+      --text: #ffffff;
+      --text-sec: #bbbbbb;
+      --border: #333333;
+      --primary: #ff0066;
+      --nav-bg: rgba(10,10,10,0.95);
+    }
+    body.light {
+      --bg: #f5f5f5;
       --card-bg: #ffffff;
-      --header-bg: linear-gradient(135deg, var(--primary), var(--secondary));
+      --text: #111111;
+      --text-sec: #555555;
+      --border: #dddddd;
+      --nav-bg: rgba(245,245,245,0.95);
     }
-
-    /* Dark Mode */
-    .dark-mode {
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #2d2d2d;
-      --text-primary: #f8f9fa;
-      --text-secondary: #adb5bd;
-      --border-color: #495057;
-      --card-bg: #252525;
-      --header-bg: linear-gradient(135deg, #ff4757, #1e90ff);
-    }
-
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      transition: background 0.3s, color 0.3s;
-      padding-bottom: 70px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      transition: all 0.3s;
     }
-
-    /* Header */
-    header {
-      background: var(--header-bg);
-      color: white;
-      padding: 1.5rem;
-      text-align: center;
-      position: relative;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    header h1 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-    }
-
-    header p {
-      opacity: 0.9;
-      font-size: 0.85rem;
-    }
-
-    /* Language & Theme Controls */
-    .header-controls {
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      height: 60px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(10px);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-top: 1rem;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border);
     }
-
-    .language-switcher select {
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      background: rgba(255,255,255,0.2);
-      color: white;
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary);
     }
-
-    .theme-toggle {
-      background: rgba(255,255,255,0.2);
-      border: none;
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .theme-toggle, .hamburger {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      cursor: pointer;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 1.2rem;
-      transition: all 0.3s;
-    }
-
-    .theme-toggle:hover {
-      background: rgba(255,255,255,0.3);
-      transform: rotate(360deg);
-    }
-
-    /* Auth Buttons */
-    .auth-buttons {
-      display: flex;
-      gap: 0.8rem;
-      justify-content: center;
-      margin-top: 0.8rem;
-    }
-
-    .btn {
-      padding: 0.6rem 1.2rem;
-      border-radius: 25px;
-      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
-      border: none;
-      text-decoration: none;
-      display: inline-block;
-      font-size: 0.9rem;
+      font-size: 1.3rem;
     }
-
-    .btn-primary {
-      background: white;
-      color: var(--primary);
+    .hamburger div {
+      width: 24px;
+      height: 3px;
+      background: var(--text);
+      margin: 4px 0;
     }
-
-    .btn-outline {
-      background: transparent;
-      border: 2px solid white;
-      color: white;
+    .menu {
+      position: fixed;
+      top: 60px;
+      right: -300px;
+      width: 280px;
+      height: calc(100vh - 60px);
+      background: var(--card-bg);
+      border-left: 1px solid var(--border);
+      transition: right 0.3s;
+      z-index: 999;
+      padding: 20px;
+      overflow-y: auto;
     }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    .menu.open { right: 0; }
+    .menu-item {
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
     }
-
-    /* Ad Banner */
-    .ad-banner {
-      background: var(--bg-primary);
-      border: 2px dashed var(--border-color);
-      border-radius: 8px;
-      padding: 1rem;
-      text-align: center;
-      margin: 1rem;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    .menu-item:hover { color: var(--primary); }
+    .container { padding: 80px 20px 100px; max-width: 1200px; margin: 0 auto; }
+    .search-box { text-align: center; margin-bottom: 20px; }
+    #searchInput {
+      width: 100%;
+      max-width: 500px;
+      padding: 12px 20px;
+      border: 2px solid var(--border);
+      border-radius: 30px;
+      background: var(--card-bg);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
     }
-
-    .ad-banner .ad-label {
-      display: inline-block;
-      background: var(--warning);
-      color: var(--dark);
-      padding: 0.2rem 0.6rem;
-      border-radius: 4px;
-      font-weight: bold;
-      font-size: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Category Tabs */
-    .category-tabs {
+    .chips {
       display: flex;
       overflow-x: auto;
-      background: var(--bg-primary);
-      border-bottom: 2px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 90;
+      gap: 12px;
+      padding: 10px 0;
+      margin-bottom: 30px;
       scrollbar-width: none;
     }
-
-    .category-tabs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .category-tab {
-      padding: 1rem 1.5rem;
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-weight: 500;
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+      padding: 10px 18px;
+      border-radius: 30px;
       white-space: nowrap;
-      transition: all 0.3s;
-      position: relative;
-    }
-
-    .category-tab:hover {
-      color: var(--primary);
-    }
-
-    .category-tab.active {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    .category-tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--primary);
-      border-radius: 2px 2px 0 0;
-    }
-
-    /* Content Sections */
-    .content-section {
-      display: none;
-      padding: 1rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .content-section.active {
-      display: block;
-    }
-
-    /* Gallery Grid */
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .gallery-item {
-      background: var(--card-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-      border: 1px solid var(--border-color);
-    }
-
-    .gallery-item:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-
-    .gallery-item img {
-      width: 100%;
-      height: 280px;
-      object-fit: cover;
-      display: block;
-    }
-
-    .gallery-item .info {
-      padding: 1rem;
-    }
-
-    .gallery-item .info h3 {
-      font-size: 1rem;
-      margin-bottom: 0.3rem;
-      color: var(--text-primary);
-    }
-
-    .gallery-item .info p {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-    }
-
-    .gallery-item .meta {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 0.5rem;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    .gallery-item .likes {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    /* Video Section */
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .video-item {
-      background: var(--card-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-
-    .video-thumbnail {
-      position: relative;
-      width: 100%;
-      height: 180px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 3rem;
-    }
-
-    .video-thumbnail::after {
-      content: '▶';
-      position: absolute;
-      font-size: 2rem;
-      opacity: 0.9;
-    }
-
-    .video-info {
-      padding: 1rem;
-    }
-
-    .video-info h3 {
-      color: var(--text-primary);
-      margin-bottom: 0.3rem;
-    }
-
-    .video-info p {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-    }
-
-    /* Favorites Section */
-    .favorites-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .favorite-item {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 1rem;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .favorite-item img {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      object-fit: cover;
-    }
-
-    .favorite-info h4 {
-      color: var(--text-primary);
-      font-size: 0.95rem;
-    }
-
-    .favorite-info p {
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-    }
-
-    /* Bottom Ad */
-    .bottom-ad {
-      background: var(--bg-primary);
-      border: 2px dashed var(--border-color);
-      border-radius: 8px;
-      padding: 1.5rem;
-      text-align: center;
-      margin: 1rem;
-      font-size: 0.9rem;
-    }
-
-    /* Bottom Navigation */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--bg-primary);
-      display: flex;
-      justify-content: space-around;
-      padding: 0.8rem 0;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
-      border-top: 2px solid var(--primary);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.75rem;
-      transition: color 0.3s;
-      width: 20%;
-    }
-
-    .nav-item.active {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    .nav-item i {
-      font-size: 1.6rem;
-      margin-bottom: 0.2rem;
-    }
-
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--bg-primary);
-      border-radius: 16px;
-      width: 90%;
-      max-width: 450px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 2rem;
-      position: relative;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      font-size: 1.5rem;
       cursor: pointer;
-      color: var(--text-secondary);
-      transition: color 0.3s;
+      transition: 0.3s;
     }
-
-    .close-modal:hover {
-      color: var(--danger);
-    }
-
-    .modal h2 {
-      margin-bottom: 1.5rem;
-      color: var(--text-primary);
-    }
-
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%;
-      padding: 0.8rem;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 1rem;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      transition: border-color 0.3s;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      outline: none;
+    .chip.active, .chip:hover {
+      background: var(--primary);
+      color: white;
       border-color: var(--primary);
     }
-
-    .form-group textarea {
-      min-height: 100px;
-      resize: vertical;
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
     }
-
-    .btn-submit {
-      width: 100%;
-      padding: 1rem;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
+    .video-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: transform 0.2s;
     }
-
-    .btn-submit:hover {
-      background: #ff5252;
+    .video-card:hover { transform: scale(1.03); }
+    .thumbnail-container {
+      position: relative;
+      aspect-ratio: 9/16;
+      background: #000;
     }
-
-    /* User Menu Dropdown */
-    .user-menu {
+    .thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .play-icon {
       position: absolute;
-      top: 60px;
-      right: 20px;
-      background: var(--bg-primary);
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      padding: 1rem;
-      display: none;
-      min-width: 180px;
-      z-index: 100;
-      border: 1px solid var(--border-color);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      color: rgba(255,255,255,0.7);
+      pointer-events: none;
     }
-
-    .user-menu.active {
-      display: block;
+    .info { padding: 10px; }
+    .title {
+      font-size: 0.9rem;
+      line-height: 1.3;
+      margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-
-    .user-menu a {
-      display: block;
-      padding: 0.6rem 1rem;
-      color: var(--text-primary);
-      text-decoration: none;
-      border-radius: 6px;
-      transition: background 0.3s;
-    }
-
-    .user-menu a:hover {
-      background: var(--bg-secondary);
-      color: var(--primary);
-    }
-
-    .user-menu .divider {
-      height: 1px;
-      background: var(--border-color);
-      margin: 0.5rem 0;
-    }
-
-    /* Profile Button */
-    .profile-btn {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: white;
+    .stats { font-size: 0.75rem; color: var(--text-sec); }
+    .ad-placeholder {
+      background: #222;
+      aspect-ratio: 9/16;
       display: flex;
       align-items: center;
       justify-content: center;
+      color: #888;
       font-weight: bold;
+      border-radius: 12px;
+    }
+    #loadMore {
+      display: block;
+      margin: 40px auto;
+      padding: 12px 40px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
       cursor: pointer;
-      border: 2px solid var(--primary);
-      color: var(--primary);
-      transition: all 0.3s;
     }
-
-    .profile-btn:hover {
-      transform: scale(1.1);
+    #scrollTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
     }
-
-    /* Disclaimer */
-    .disclaimer {
-      background: var(--warning);
-      color: var(--dark);
-      padding: 1rem;
-      text-align: center;
-      font-size: 0.85rem;
-      margin: 1rem;
-      border-radius: 8px;
-      border-left: 4px solid var(--warning);
+    #scrollTop.show { opacity: 1; }
+    .splash {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      color: white;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
     }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .gallery {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 1rem;
-        padding: 0.5rem;
-      }
-
-      .category-tabs {
-        padding: 0 0.5rem;
-      }
-
-      .category-tab {
-        padding: 0.8rem 1rem;
-        font-size: 0.85rem;
-      }
-
-      header h1 {
-        font-size: 1.4rem;
-      }
-
-      .nav-item span {
-        display: none;
-      }
-
-      .nav-item i {
-        font-size: 1.8rem;
-      }
+    .splash-buttons {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
     }
-
-    /* Icons (using emoji as placeholders) */
-    .icon-home::before { content: "🏠"; }
-    .icon-plus::before { content: "➕"; }
-    .icon-search::before { content: "🔍"; }
-    .icon-user::before { content: "👤"; }
-    .icon-image::before { content: "📸"; }
-    .icon-video::before { content: "🎬"; }
-    .icon-heart::before { content: "❤️"; }
-    .icon-globe::before { content: "🌐"; }
+    .splash-btn {
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .splash-btn.yes { background: var(--primary); color: white; border: none; }
+    .splash-btn.no { background: #444; color: white; border: none; }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+    }
+    .modal iframe {
+      width: 90%;
+      max-width: 900px;
+      height: 80vh;
+      border: none;
+    }
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      font-size: 40px;
+      cursor: pointer;
+    }
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 12px 30px;
+      border-radius: 30px;
+      z-index: 3000;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    #toast.show { opacity: 1; }
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 12px;
+      aspect-ratio: 9/16;
+    }
   </style>
 </head>
 <body>
-  <!-- Disclaimer -->
-  <div class="disclaimer">
-    ⚠️ <strong>SFW Only:</strong> This website contains Safe For Work content only. No explicit/nude material.
+
+<div class="splash" id="splash">
+  <h1 style="font-size:2.5rem; margin-bottom:20px;">Mostvert</h1>
+  <p style="font-size:1.2rem; max-width:500px; text-align:center; margin-bottom:30px;">
+    This website contains adult content. You must be 18 years or older to enter.
+  </p>
+  <div class="splash-buttons">
+    <button class="splash-btn yes" onclick="enterSite()">I'm 18+</button>
+    <button class="splash-btn no" onclick="exitSite()">Exit</button>
   </div>
+</div>
 
-  <!-- Ad Banner Top -->
-  <div class="ad-banner">
-    <div class="ad-label">ADVERTISEMENT</div>
-    <div style="margin: 0.5rem 0; font-weight: bold;">Your Banner Here - 728x90</div>
-    <div style="font-size: 0.75rem;">Contact: ads@yourdomain.com</div>
-  </div>
-
-  <!-- Header -->
-  <header>
-    <h1>🎭 Cosplay Gallery</h1>
-    <p>Showcase your amazing cosplay creations!</p>
-    
-    <div class="header-controls">
-      <div class="language-switcher">
-        <select id="languageSelect" onchange="changeLanguage()">
-          <option value="id">🇮🇩 Indonesia</option>
-          <option value="en">🇺🇸 English</option>
-          <option value="ja">🇯🇵 Japanese</option>
-          <option value="ko">🇰🇷 Korean</option>
-          <option value="zh">🇨🇳 Chinese</option>
-        </select>
-      </div>
-      
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
-        🌙
-      </button>
-    </div>
-
-    <div class="auth-buttons">
-      <button class="btn btn-outline" onclick="openModal('loginModal')">Login</button>
-      <button class="btn btn-primary" onclick="openModal('registerModal')">Sign Up</button>
-    </div>
-
-    <!-- Profile Button (hidden when logged out) -->
-    <button class="profile-btn" id="profileBtn" style="display: none;" onclick="toggleUserMenu()">
-      U
-    </button>
-
-    <!-- User Menu Dropdown -->
-    <div class="user-menu" id="userMenu">
-      <a href="#" onclick="openModal('uploadModal')">📤 Upload Cosplay</a>
-      <a href="#">📁 My Gallery</a>
-      <a href="#">⚙️ Settings</a>
-      <div class="divider"></div>
-      <a href="#" onclick="logout()">🚪 Logout</a>
-    </div>
-  </header>
-
-  <!-- Category Tabs -->
-  <div class="category-tabs">
-    <button class="category-tab active" onclick="switchTab('images')">📸 Images</button>
-    <button class="category-tab" onclick="switchTab('videos')">🎬 Videos</button>
-    <button class="category-tab" onclick="switchTab('favorites')">❤️ Favorites</button>
-    <button class="category-tab" onclick="switchTab('popular')">🔥 Popular</button>
-    <button class="category-tab" onclick="switchTab('latest')">🆕 Latest</button>
-    <button class="category-tab" onclick="switchTab('categories')">📁 Categories</button>
-  </div>
-
-  <!-- Images Section -->
-  <section id="images" class="content-section active">
-    <div class="gallery">
-      <!-- Sample Items -->
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/ff6b6b/ffffff?text=Sailor+Moon" alt="Cosplay 1">
-        <div class="info">
-          <h3>Sailor Moon</h3>
-          <p>by @cosplayer123</p>
-          <div class="meta">
-            <span>🎭 Anime</span>
-            <span class="likes">❤️ 1.2K</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Eren+Yeager" alt="Cosplay 2">
-        <div class="info">
-          <h3>Eren Yeager</h3>
-          <p>by @anime_fan</p>
-          <div class="meta">
-            <span>⚔️ Attack on Titan</span>
-            <span class="likes">❤️ 890</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/45b7d1/ffffff?text=Geralt" alt="Cosplay 3">
-        <div class="info">
-          <h3>Geralt of Rivia</h3>
-          <p>by @witcher_cosplay</p>
-          <div class="meta">
-            <span>⚔️ The Witcher</span>
-            <span class="likes">❤️ 1.5K</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/96ce7c/ffffff?text=Spider-Man" alt="Cosplay 4">
-        <div class="info">
-          <h3>Spider-Man</h3>
-          <p>by @spider_fan</p>
-          <div class="meta">
-            <span>🕷️ Marvel</span>
-            <span class="likes">❤️ 2.1K</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/f7b731/ffffff?text=Naruto" alt="Cosplay 5">
-        <div class="info">
-          <h3>Naruto Uzumaki</h3>
-          <p>by @naruto_cosplay</p>
-          <div class="meta">
-            <span>🍥 Naruto</span>
-            <span class="likes">❤️ 1.8K</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/e67e22/ffffff?text=Joker" alt="Cosplay 6">
-        <div class="info">
-          <h3>Joker</h3>
-          <p>by @dark_knight</p>
-          <div class="meta">
-            <span>🃏 DC Comics</span>
-            <span class="likes">❤️ 2.5K</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Videos Section -->
-  <section id="videos" class="content-section">
-    <div class="video-grid">
-      <div class="video-item">
-        <div class="video-thumbnail"></div>
-        <div class="video-info">
-          <h3>Sailor Moon Transformation</h3>
-          <p>by @cosplayer123 • 3:45</p>
-        </div>
-      </div>
-
-      <div class="video-item">
-        <div class="video-thumbnail"></div>
-        <div class="video-info">
-          <h3>Eren Yeager Battle Scene</h3>
-          <p>by @anime_fan • 5:20</p>
-        </div>
-      </div>
-
-      <div class="video-item">
-        <div class="video-thumbnail"></div>
-        <div class="video-info">
-          <h3>Geralt Sword Training</h3>
-          <p>by @witcher_cosplay • 4:10</p>
-        </div>
-      </div>
-
-      <div class="video-item">
-        <div class="video-thumbnail"></div>
-        <div class="video-info">
-          <h3>Spider-Man Web Action</h3>
-          <p>by @spider_fan • 6:30</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Favorites Section -->
-  <section id="favorites" class="content-section">
-    <div class="favorites-list">
-      <div class="favorite-item">
-        <img src="https://via.placeholder.com/60x60/ff6b6b/ffffff" alt="Fav 1">
-        <div class="favorite-info">
-          <h4>Sailor Moon</h4>
-          <p>❤️ 2.5K likes</p>
-        </div>
-      </div>
-
-      <div class="favorite-item">
-        <img src="https://via.placeholder.com/60x60/4ecdc4/ffffff" alt="Fav 2">
-        <div class="favorite-info">
-          <h4>Eren Yeager</h4>
-          <p>❤️ 2.1K likes</p>
-        </div>
-      </div>
-
-      <div class="favorite-item">
-        <img src="https://via.placeholder.com/60x60/45b7d1/ffffff" alt="Fav 3">
-        <div class="favorite-info">
-          <h4>Geralt</h4>
-          <p>❤️ 1.8K likes</p>
-        </div>
-      </div>
-
-      <div class="favorite-item">
-        <img src="https://via.placeholder.com/60x60/96ce7c/ffffff" alt="Fav 4">
-        <div class="favorite-info">
-          <h4>Spider-Man</h4>
-          <p>❤️ 1.5K likes</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Popular Section -->
-  <section id="popular" class="content-section">
-    <div class="gallery">
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/ff6b6b/ffffff?text=Popular+1" alt="Popular 1">
-        <div class="info">
-          <h3>Most Liked Cosplay</h3>
-          <p>by @top_cosplayer</p>
-          <div class="meta">
-            <span>🔥 Trending</span>
-            <span class="likes">❤️ 5.2K</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Popular+2" alt="Popular 2">
-        <div class="info">
-          <h3>Best Costume 2026</h3>
-          <p>by @award_winner</p>
-          <div class="meta">
-            <span>🏆 Award Winner</span>
-            <span class="likes">❤️ 4.8K</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Latest Section -->
-  <section id="latest" class="content-section">
-    <div class="gallery">
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/f7b731/ffffff?text=New+1" alt="Latest 1">
-        <div class="info">
-          <h3>Just Uploaded!</h3>
-          <p>by @new_cosplayer</p>
-          <div class="meta">
-            <span>🆕 5 minutes ago</span>
-            <span class="likes">❤️ 12</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="gallery-item">
-        <img src="https://via.placeholder.com/300x300/e67e22/ffffff?text=New+2" alt="Latest 2">
-        <div class="info">
-          <h3>Fresh Cosplay</h3>
-          <p>by @fresh_creator</p>
-          <div class="meta">
-            <span>🆕 10 minutes ago</span>
-            <span class="likes">❤️ 8</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Categories Section -->
-  <section id="categories" class="content-section">
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; padding: 1rem;">
-      <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid var(--border-color);">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎭</div>
-        <div style="font-weight: 600;">Anime</div>
-        <div style="color: var(--text-secondary); font-size: 0.85rem;">120 cosplays</div>
-      </div>
-
-      <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid var(--border-color);">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎮</div>
-        <div style="font-weight: 600;">Games</div>
-        <div style="color: var(--text-secondary); font-size: 0.85rem;">85 cosplays</div>
-      </div>
-
-      <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid var(--border-color);">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎬</div>
-        <div style="font-weight: 600;">Movies</div>
-        <div style="color: var(--text-secondary); font-size: 0.85rem;">65 cosplays</div>
-      </div>
-
-      <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid var(--border-color);">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📚</div>
-        <div style="font-weight: 600;">Comics</div>
-        <div style="color: var(--text-secondary); font-size: 0.85rem;">95 cosplays</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Bottom Ad -->
-  <div class="bottom-ad">
-    <div style="font-weight: bold; margin-bottom: 0.5rem;">ADVERTISEMENT</div>
-    <div>Your Banner Here - 300x250</div>
-    <div style="font-size: 0.8rem; margin-top: 0.5rem;">Contact: ads@yourdomain.com</div>
-  </div>
-
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="#" class="nav-item active">
-      <div class="icon-home"></div>
-      <span>Home</span>
-    </a>
-    <a href="#" class="nav-item" onclick="openModal('uploadModal')">
-      <div class="icon-plus"></div>
-      <span>Create</span>
-    </a>
-    <a href="#" class="nav-item">
-      <div class="icon-search"></div>
-      <span>Search</span>
-    </a>
-    <a href="#" class="nav-item" onclick="openModal('loginModal')">
-      <div class="icon-user"></div>
-      <span>Login</span>
-    </a>
-  </nav>
-
-  <!-- Login Modal -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
-      <h2>🔐 Login</h2>
-      <form id="loginForm">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" placeholder="your@email.com" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn-submit">Login</button>
-      </form>
-      <p style="text-align: center; margin-top: 1rem; font-size: 0.9rem;">
-        Don't have an account? <a href="#" onclick="openModal('registerModal'); closeModal('loginModal');" style="color: var(--primary);">Sign Up</a>
-      </p>
+<nav>
+  <div class="logo">Mostvert</div>
+  <div class="nav-right">
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <div></div><div></div><div></div>
     </div>
   </div>
+</nav>
 
-  <!-- Register Modal -->
-  <div class="modal" id="registerModal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeModal('registerModal')">&times;</span>
-      <h2>📝 Sign Up</h2>
-      <form id="registerForm">
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" placeholder="your_username" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" placeholder="your@email.com" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" placeholder="••••••••" required>
-        </div>
-        <div class="form-group">
-          <label>Confirm Password</label>
-          <input type="password" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn-submit">Create Account</button>
-      </form>
-      <p style="text-align: center; margin-top: 1rem; font-size: 0.9rem;">
-        Already have an account? <a href="#" onclick="openModal('loginModal'); closeModal('registerModal');" style="color: var(--primary);">Login</a>
-      </p>
-    </div>
+<div class="menu" id="menu">
+  <div class="menu-item" onclick="goHome(); toggleMenu()">Home</div>
+  <div class="menu-item" onclick="goCategories(); toggleMenu()">Kategori</div>
+  <div class="menu-item" onclick="window.open('https://www.google.com','_blank'); toggleMenu()">Link External</div>
+  <div class="menu-item" onclick="translatePage(); toggleMenu()">Translator</div>
+</div>
+
+<div class="container" id="mainContent">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search videos..." onkeypress="if(event.key==='Enter') performSearch()">
   </div>
 
-  <!-- Upload/Create Modal -->
-  <div class="modal" id="uploadModal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeModal('uploadModal')">&times;</span>
-      <h2>📤 Upload Cosplay</h2>
-      <form id="uploadForm">
-        <div class="form-group">
-          <label>Character Name</label>
-          <input type="text" placeholder="e.g., Sailor Moon, Eren Yeager" required>
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select required>
-            <option value="">Select category</option>
-            <option value="anime">🎭 Anime</option>
-            <option value="game">🎮 Video Game</option>
-            <option value="movie">🎬 Movie</option>
-            <option value="comic">📚 Comic/Manga</option>
-            <option value="original">✨ Original Character</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea placeholder="Tell us about your cosplay!"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Upload Image</label>
-          <input type="file" accept="image/*" id="imageUpload">
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
-            📌 Tip: Upload to <a href="https://imgbb.com/" target="_blank" style="color: var(--primary);">ImgBB</a> or <a href="https://cloudinary.com/" target="_blank" style="color: var(--primary);">Cloudinary</a> first
-          </p>
-        </div>
-        <div class="form-group">
-          <label>Image URL</label>
-          <input type="url" placeholder="https://example.com/image.jpg">
-        </div>
-        <button type="submit" class="btn-submit">Post Cosplay</button>
-      </form>
-    </div>
+  <div class="chips" id="chips">
+    <div class="chip active" data-query="trending vertical">Trending</div>
+    <div class="chip" data-query="vertical pov">POV</div>
+    <div class="chip" data-query="vertical solo">Solo</div>
+    <div class="chip" data-query="vertical blowjob">Blowjob</div>
+    <div class="chip" data-query="vertical 4k">4K</div>
+    <div class="chip" data-query="vertical pmv">PMV</div>
+    <div class="chip" data-query="vertical amateur">Amateur</div>
   </div>
 
-  <script>
-    // Tab Switching
-    function switchTab(tabName) {
-      // Hide all sections
-      document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
+  <div class="video-grid" id="videoGrid"></div>
+
+  <button id="loadMore">Load More</button>
+</div>
+
+<div class="modal" id="modal">
+  <span class="modal-close" onclick="closeModal()">×</span>
+  <iframe id="player" allowfullscreen></iframe>
+</div>
+
+<div id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<div id="toast"></div>
+
+<script>
+  const API_BASE = 'https://www.eporner.com/api/v2/video/search/';
+  let currentQuery = 'vertical video'; // default halaman utama
+  let currentPage = 1;
+  let isLoading = false;
+
+  if (!localStorage.getItem('ageVerified')) {
+    document.getElementById('splash').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'none';
+  } else {
+    document.getElementById('splash').style.display = 'none';
+    loadVideos();
+  }
+
+  function enterSite() {
+    localStorage.setItem('ageVerified', 'true');
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    loadVideos();
+  }
+
+  function exitSite() {
+    window.location.href = 'https://www.google.com';
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('light');
+    document.querySelector('.theme-toggle').textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  }
+
+  function toggleMenu() {
+    document.getElementById('menu').classList.toggle('open');
+  }
+
+  function goHome() {
+    currentQuery = 'vertical video';
+    currentPage = 1;
+    document.getElementById('videoGrid').innerHTML = '';
+    loadVideos();
+    toggleMenu();
+  }
+
+  function goCategories() {
+    document.getElementById('mainContent').innerHTML = `
+      <h2>Kategori Vertical Videos</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; padding:20px;">
+        ${['Amateur','Anal','Big Tits','Blowjob','Lesbian','MILF','Teen','POV','Creampie','Cumshot','Asian','Ebony','Latina','Interracial','BDSM'].map(cat => `
+          <div style="background:var(--card-bg); padding:20px; border-radius:12px; text-align:center; cursor:pointer;" onclick="goCategory('${cat}')">
+            ${cat}
+          </div>
+        `).join('')}
+      </div>
+      <button style="margin:30px auto; display:block; padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:30px;" onclick="goHome()">Back to Home</button>
+    `;
+  }
+
+  function goCategory(cat) {
+    currentQuery = `${cat} vertical`;
+    document.getElementById('mainContent').innerHTML = '<p>Loading...</p>';
+    loadVideos();
+  }
+
+  function translatePage() {
+    window.open('https://translate.google.com/?sl=auto&tl=id&u=' + encodeURIComponent(window.location.href), '_blank');
+  }
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentQuery = chip.dataset.query || 'vertical video';
+      currentPage = 1;
+      document.getElementById('videoGrid').innerHTML = '';
+      loadVideos();
+    });
+  });
+
+  function performSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (!q) return;
+    currentQuery = q; // search manual tanpa tambahan vertical
+    currentPage = 1;
+    document.getElementById('videoGrid').innerHTML = '';
+    loadVideos();
+  }
+
+  async function loadVideos() {
+    if (isLoading) return;
+    isLoading = true;
+
+    const grid = document.getElementById('videoGrid');
+    grid.innerHTML = '';
+    for(let i = 0; i < 6; i++) {
+      const skel = document.createElement('div');
+      skel.className = 'skeleton';
+      grid.appendChild(skel);
+    }
+
+    try {
+      const params = new URLSearchParams({
+        query: currentQuery || 'all',
+        per_page: currentPage === 1 ? 30 : 20,
+        page: currentPage,
+        thumbsize: 'big',
+        lq: '0',
+        order: 'latest',
+        format: 'json'
       });
-      
-      // Remove active from all tabs
-      document.querySelectorAll('.category-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      
-      // Show selected section
-      document.getElementById(tabName).classList.add('active');
-      
-      // Add active to clicked tab
-      event.target.classList.add('active');
-    }
+      const res = await fetch(API_BASE + '?' + params);
+      if (!res.ok) throw new Error('Fetch gagal: ' + res.status);
+      const data = await res.json();
+      const videos = data.videos || [];
 
-    // Modal Functions
-    function openModal(modalId) {
-      document.getElementById(modalId).classList.add('active');
-    }
+      document.querySelectorAll('.skeleton').forEach(s => s.remove());
 
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('active');
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-      if (event.target.classList.contains('modal')) {
-        event.target.classList.remove('active');
+      if (videos.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:red;">Tidak ada video ditemukan. Coba keyword lain atau refresh!</p>';
       }
-    }
 
-    // Toggle User Menu
-    function toggleUserMenu() {
-      const menu = document.getElementById('userMenu');
-      menu.classList.toggle('active');
-    }
+      videos.forEach((v, i) => {
+        if (i % 5 === 0 && i !== 0) {
+          const ad = document.createElement('div');
+          ad.className = 'ad-placeholder';
+          ad.innerText = 'AD HERE';
+          grid.appendChild(ad);
+        }
 
-    // Close user menu when clicking outside
-    document.addEventListener('click', function(event) {
-      const menu = document.getElementById('userMenu');
-      const profileBtn = document.getElementById('profileBtn');
-      
-      if (!menu.contains(event.target) && !profileBtn.contains(event.target)) {
-        menu.classList.remove('active');
-      }
-    });
-
-    // Login Form Submit
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('✅ Login successful! (Demo mode)');
-      
-      // Hide auth buttons, show profile
-      document.querySelector('.auth-buttons').style.display = 'none';
-      document.getElementById('profileBtn').style.display = 'flex';
-      
-      closeModal('loginModal');
-    });
-
-    // Register Form Submit
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('✅ Account created! Please login.');
-      closeModal('registerModal');
-      openModal('loginModal');
-    });
-
-    // Upload Form Submit
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('✅ Cosplay uploaded! (In production, this would save to your database)');
-      closeModal('uploadModal');
-    });
-
-    // Logout
-    function logout() {
-      alert('👋 Logged out!');
-      document.querySelector('.auth-buttons').style.display = 'flex';
-      document.getElementById('profileBtn').style.display = 'none';
-      document.getElementById('userMenu').classList.remove('active');
-    }
-
-    // Theme Toggle
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-      
-      const themeToggle = document.querySelector('.theme-toggle');
-      if (document.body.classList.contains('dark-mode')) {
-        themeToggle.innerHTML = '☀️';
-        themeToggle.title = 'Switch to Light Mode';
-      } else {
-        themeToggle.innerHTML = '🌙';
-        themeToggle.title = 'Switch to Dark Mode';
-      }
-      
-      // Save preference to localStorage
-      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-    }
-
-    // Load saved theme
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        document.querySelector('.theme-toggle').innerHTML = '☀️';
-      }
-    });
-
-    // Language Switcher (Demo)
-    function changeLanguage() {
-      const lang = document.getElementById('languageSelect').value;
-      const messages = {
-        id: 'Bahasa Indonesia dipilih!',
-        en: 'English selected!',
-        ja: '日本語が選択されました！',
-        ko: '한국어가 선택되었습니다!',
-        zh: '中文已选择！'
-      };
-      
-      // In production: load translations for all text
-      alert(messages[lang]);
-    }
-
-    // Image Upload Preview (optional)
-    document.getElementById('imageUpload').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          console.log('Image selected:', event.target.result);
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `
+          <div class="thumbnail-container">
+            <img src="${v.default_thumb?.src || 'https://via.placeholder.com/260x400?text=No+Thumb'}" class="thumbnail" loading="lazy">
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="info">
+            <div class="title">${v.title.substring(0,60)}${v.title.length>60?'...':''}</div>
+            <div class="stats">${v.views || '0'} views • ${v.length_min || '?'} min</div>
+          </div>`;
+        card.onclick = () => {
+          if (v.embed) {
+            document.getElementById('player').src = v.embed + '?autoplay=1';
+            document.getElementById('modal').style.display = 'flex';
+          } else {
+            window.open('https://www.eporner.com/video-' + v.id, '_blank');
+          }
         };
-        reader.readAsDataURL(file);
-      }
-    });
-  </script>
+        grid.appendChild(card);
+      });
+
+      currentPage++;
+      document.getElementById('loadMore').style.display = videos.length >= 20 ? 'block' : 'none';
+
+    } catch(e) {
+      document.querySelectorAll('.skeleton').forEach(s => s.remove());
+      grid.innerHTML = '<p style="text-align:center;color:red;">Gagal load: ' + e.message + '</p>';
+    }
+
+    isLoading = false;
+  }
+
+  document.getElementById('loadMore').onclick = loadVideos;
+
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('player').src = '';
+  }
+
+  window.onscroll = () => {
+    document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 300);
+  };
+
+  window.onload = () => {
+    if (!localStorage.getItem('ageVerified')) {
+      document.getElementById('splash').style.display = 'flex';
+      document.getElementById('mainContent').style.display = 'none';
+    } else {
+      loadVideos();
+    }
+  };
+</script>
 </body>
 </html>
