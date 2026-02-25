@@ -72,6 +72,9 @@
       position: relative;
       width: 30px;
       height: 20px;
+      border-radius: 0;
+      border: none;
+      background: transparent;
     }
     .hamburger div {
       position: absolute;
@@ -83,12 +86,12 @@
     .hamburger div:nth-child(1) { top: 0; }
     .hamburger div:nth-child(2) { top: 8px; }
     .hamburger div:nth-child(3) { top: 16px; }
-    .menu.open .hamburger div:nth-child(1) {
+    .hamburger.open div:nth-child(1) {
       transform: rotate(45deg);
       top: 8px;
     }
-    .menu.open .hamburger div:nth-child(2) { opacity: 0; }
-    .menu.open .hamburger div:nth-child(3) {
+    .hamburger.open div:nth-child(2) { opacity: 0; }
+    .hamburger.open div:nth-child(3) {
       transform: rotate(-45deg);
       top: 8px;
     }
@@ -168,6 +171,7 @@
       overflow: hidden;
       cursor: pointer;
       transition: transform 0.2s;
+      position: relative;
     }
     .video-card:hover { transform: scale(1.03); }
     .thumbnail-container {
@@ -210,6 +214,22 @@
       color: #888;
       font-weight: bold;
       border-radius: 12px;
+    }
+    .card-actions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 5px;
+    }
+    .action-btn {
+      background: rgba(0,0,0,0.5);
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 50%;
     }
     #loadMore {
       display: block;
@@ -361,6 +381,7 @@
 <div class="menu" id="menu">
   <div class="menu-item" onclick="goHome(); toggleMenu()">Home</div>
   <div class="menu-item" onclick="goCategories(); toggleMenu()">Kategori</div>
+  <div class="menu-item" onclick="goFavorites(); toggleMenu()">Favorites</div>
   <div class="menu-item" onclick="window.open('https://www.google.com','_blank'); toggleMenu()">Link External</div>
   <div class="menu-item" onclick="translatePage(); toggleMenu()">Translator</div>
 </div>
@@ -392,7 +413,7 @@
   <div class="modal-controls">
     <button class="modal-btn" onclick="shareVideo()">Share</button>
     <button class="modal-btn" onclick="closeModal()">Tutup</button>
-    <button class="modal-btn fav" onclick="toggleFavorite()">Favorite</button>
+    <button class="modal-btn fav" onclick="toggleFavoriteModal()">Favorite</button>
   </div>
 </div>
 
@@ -406,10 +427,13 @@
 
 <script>
   const API_BASE = 'https://www.eporner.com/api/v2/video/search/';
+  const API_ID = 'https://www.eporner.com/api/v2/video/id/';
   let currentQuery = 'vertical video';
   let currentPage = 1;
   let isLoading = false;
   let favorites = JSON.parse(localStorage.getItem('mostvertFavorites')) || [];
+  let currentVideo = null;
+  const originalMainContent = document.getElementById('mainContent').innerHTML;
 
   if (!localStorage.getItem('ageVerified')) {
     document.getElementById('splash').style.display = 'flex';
@@ -437,20 +461,19 @@
 
   function toggleMenu() {
     document.getElementById('menu').classList.toggle('open');
+    document.querySelector('.hamburger').classList.toggle('open');
   }
 
   function goHome() {
+    document.getElementById('mainContent').innerHTML = originalMainContent;
+    initListeners();
     currentQuery = 'vertical video';
     currentPage = 1;
-    document.getElementById('mainContent').style.display = 'block';
     document.getElementById('videoGrid').innerHTML = '';
     loadVideos();
-    toggleMenu();
   }
 
   function goCategories() {
-    document.getElementById('mainContent').innerHTML = '<p>Loading categories...</p>';
-    // Load kategori dengan thumbnail pertama
     const categories = ['Amateur','Anal','Big Tits','Blowjob','Lesbian','MILF','Teen','POV','Creampie','Cumshot','Asian','Ebony','Latina','Interracial','BDSM'];
     let html = '<h2>Kategori Videos</h2><div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; padding:20px;">';
     categories.forEach(cat => {
@@ -468,25 +491,65 @@
   }
 
   function goCategory(cat) {
+    document.getElementById('mainContent').innerHTML = originalMainContent;
+    initListeners();
     currentQuery = `${cat}`;
-    document.getElementById('mainContent').innerHTML = '<p>Loading...</p>';
+    currentPage = 1;
+    document.getElementById('videoGrid').innerHTML = '';
     loadVideos();
+  }
+
+  function goFavorites() {
+    document.getElementById('mainContent').innerHTML = `
+      <h2>Favorites</h2>
+      <div class="video-grid" id="favGrid"></div>
+      <button style="display:block; margin:40px auto; padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:30px; cursor:pointer;" onclick="goHome()">Back to Home</button>
+    `;
+    const grid = document.getElementById('favGrid');
+    if (favorites.length === 0) {
+      grid.innerHTML = '<p style="text-align:center; color:var(--text-sec);">No favorites yet.</p>';
+      return;
+    }
+    favorites.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'video-card';
+      card.innerHTML = `
+        <div class="thumbnail-container">
+          <img src="${f.thumb || 'https://via.placeholder.com/260x400?text=No+Thumb'}" class="thumbnail" loading="lazy">
+          <div class="play-icon">▶</div>
+        </div>
+        <div class="info">
+          <div class="title">${f.title.substring(0,60)}${f.title.length>60?'...':''}</div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn fav" onclick="toggleFavorite('${f.id}', '${f.title.replace(/'/g, "\\'")}', '${f.thumb}', event)">❤️</button>
+        </div>
+      `;
+      card.onclick = (e) => {
+        if (e.target.classList.contains('fav')) return;
+        openVideo(f.id);
+      };
+      grid.appendChild(card);
+    });
   }
 
   function translatePage() {
     window.open('https://translate.google.com/?sl=auto&tl=id&u=' + encodeURIComponent(window.location.href), '_blank');
   }
 
-  document.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      currentQuery = chip.dataset.query || 'vertical video';
-      currentPage = 1;
-      document.getElementById('videoGrid').innerHTML = '';
-      loadVideos();
+  function initListeners() {
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentQuery = chip.dataset.query || 'vertical video';
+        currentPage = 1;
+        document.getElementById('videoGrid').innerHTML = '';
+        loadVideos();
+      });
     });
-  });
+    document.getElementById('loadMore').onclick = loadVideos;
+  }
 
   function performSearch() {
     const q = document.getElementById('searchInput').value.trim();
@@ -502,22 +565,34 @@
     isLoading = true;
 
     const grid = document.getElementById('videoGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    for(let i = 0; i < 6; i++) {
+    if (!grid) {
+      isLoading = false;
+      return;
+    }
+
+    if (currentPage === 1) {
+      grid.innerHTML = '';
+    }
+
+    const numSkeletons = currentPage === 1 ? 30 : 20;
+    for (let i = 0; i < numSkeletons; i++) {
       const skel = document.createElement('div');
       skel.className = 'skeleton';
       grid.appendChild(skel);
     }
 
     try {
+      let order = 'latest';
+      if (currentQuery === 'trending') order = 'top-weekly';
+
       const params = new URLSearchParams({
         query: currentQuery || 'all',
-        per_page: currentPage === 1 ? 30 : 20,
+        per_page: currentPage === 1 ? '30' : '20',
         page: currentPage,
         thumbsize: 'big',
         lq: '0',
-        order: 'latest',
+        order: order,
+        gay: '0',
         format: 'json'
       });
       const res = await fetch(API_BASE + '?' + params);
@@ -527,7 +602,7 @@
 
       document.querySelectorAll('.skeleton').forEach(s => s.remove());
 
-      if (videos.length === 0) {
+      if (videos.length === 0 && currentPage === 1) {
         grid.innerHTML = '<p style="text-align:center;color:red;">Tidak ada video ditemukan. Coba keyword lain seperti "hot", "pov", "amateur", "pmv" atau refresh!</p>';
       }
 
@@ -538,6 +613,9 @@
           ad.innerText = 'AD HERE';
           grid.appendChild(ad);
         }
+
+        const isFavorite = favorites.some(f => f.id === v.id);
+        const favIcon = isFavorite ? '❤️' : '🤍';
 
         const card = document.createElement('div');
         card.className = 'video-card';
@@ -551,36 +629,57 @@
             <div class="stats">${v.views || '0'} views • ${v.length_min || '?'} min</div>
           </div>
           <div class="card-actions">
-            <button class="action-btn fav" onclick="toggleFavorite('${v.id}', '${v.title.replace(/'/g, "\\'")}', '${v.default_thumb?.src || ''}', event)">❤️</button>
+            <button class="action-btn fav" onclick="toggleFavorite('${v.id}', '${v.title.replace(/'/g, "\\'")}', '${v.default_thumb?.src || ''}', event)">${favIcon}</button>
           </div>`;
         card.onclick = (e) => {
           if (e.target.classList.contains('fav')) return;
-          if (v.embed) {
-            document.getElementById('player').src = v.embed + '?autoplay=1';
-            document.getElementById('modal').style.display = 'flex';
-          } else {
-            window.open('https://www.eporner.com/video-' + v.id, '_blank');
-          }
+          currentVideo = {id: v.id, title: v.title, thumb: v.default_thumb?.src || ''};
+          document.getElementById('player').src = v.embed;
+          document.getElementById('modal').style.display = 'flex';
+          setFavoriteButton();
         };
         grid.appendChild(card);
       });
 
       currentPage++;
-      document.getElementById('loadMore').style.display = videos.length >= 20 ? 'block' : 'none';
+      document.getElementById('loadMore').style.display = videos.length >= (currentPage === 2 ? 30 : 20) ? 'block' : 'none';
 
     } catch(e) {
       document.querySelectorAll('.skeleton').forEach(s => s.remove());
-      grid.innerHTML = '<p style="text-align:center;color:red;">Gagal load: ' + e.message + '</p>';
+      if (currentPage === 1) grid.innerHTML = '<p style="text-align:center;color:red;">Gagal load: ' + e.message + '</p>';
     }
 
     isLoading = false;
   }
 
-  document.getElementById('loadMore').onclick = loadVideos;
+  async function openVideo(id) {
+    try {
+      const params = new URLSearchParams({
+        id: id,
+        thumbsize: 'big',
+        format: 'json'
+      });
+      const res = await fetch(API_ID + '?' + params);
+      if (!res.ok) throw new Error('Fetch gagal');
+      const data = await res.json();
+      const v = data;
+      if (v.embed) {
+        currentVideo = {id: v.id, title: v.title, thumb: v.default_thumb?.src || ''};
+        document.getElementById('player').src = v.embed;
+        document.getElementById('modal').style.display = 'flex';
+        setFavoriteButton();
+      } else {
+        window.open('https://www.eporner.com/video-' + id, '_blank');
+      }
+    } catch (e) {
+      showToast('Failed to load video: ' + e.message);
+    }
+  }
 
   function closeModal() {
     document.getElementById('modal').style.display = 'none';
     document.getElementById('player').src = '';
+    currentVideo = null;
   }
 
   function shareVideo() {
@@ -589,31 +688,44 @@
     showToast('Link disalin!');
   }
 
+  function setFavoriteButton() {
+    if (!currentVideo) return;
+    const btn = document.querySelector('.modal-btn.fav');
+    const isFav = favorites.some(f => f.id === currentVideo.id);
+    btn.textContent = isFav ? 'Remove Favorite' : 'Add Favorite';
+  }
+
+  function toggleFavoriteModal() {
+    if (!currentVideo) return;
+    const index = favorites.findIndex(f => f.id === currentVideo.id);
+    if (index === -1) {
+      favorites.push(currentVideo);
+      showToast('Added to favorites');
+    } else {
+      favorites.splice(index, 1);
+      showToast('Removed from favorites');
+    }
+    localStorage.setItem('mostvertFavorites', JSON.stringify(favorites));
+    setFavoriteButton();
+  }
+
   function toggleFavorite(id, title, thumb, e) {
     e.stopPropagation();
     const index = favorites.findIndex(f => f.id === id);
     if (index === -1) {
       favorites.push({id, title, thumb});
       e.target.textContent = '❤️';
+      showToast('Added to favorites');
     } else {
       favorites.splice(index, 1);
       e.target.textContent = '🤍';
+      showToast('Removed from favorites');
+      if (e.target.closest('#favGrid')) {
+        e.target.closest('.video-card').remove();
+      }
     }
     localStorage.setItem('mostvertFavorites', JSON.stringify(favorites));
   }
-
-  window.onscroll = () => {
-    document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 300);
-  };
-
-  window.onload = () => {
-    if (!localStorage.getItem('ageVerified')) {
-      document.getElementById('splash').style.display = 'flex';
-      document.getElementById('mainContent').style.display = 'none';
-    } else {
-      loadVideos();
-    }
-  };
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -621,6 +733,12 @@
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
+
+  window.onscroll = () => {
+    document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 300);
+  };
+
+  initListeners();
 </script>
 </body>
 </html>
