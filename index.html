@@ -99,7 +99,7 @@
     .menu {
       position: fixed;
       top: 60px;
-      right: -300px;
+      right: -282px; /* Fully hides including border */
       width: 280px;
       height: calc(100vh - 60px);
       background: var(--card-bg);
@@ -380,12 +380,13 @@
 </nav>
 
 <div class="menu" id="menu">
-  <div class="menu-item" onclick="goHome(); toggleMenu()">Home</div>
-  <div class="menu-item" onclick="goCategories(); toggleMenu()">Categories</div>
-  <div class="menu-item" onclick="goFavorites(); toggleMenu()">Favorites</div>
-  <div class="menu-item" onclick="window.open('https://www.google.com','_blank'); toggleMenu()">External Link</div>
-  <div class="menu-item" onclick="translatePage(); toggleMenu()">Translator</div>
-</div>
+    <div class="menu-item" onclick="goHome(); toggleMenu()">Home</div>
+    <div class="menu-item" onclick="goCategories(); toggleMenu()">Categories</div>
+    <div class="menu-item" onclick="goImageGenerator(); toggleMenu()">Image Generator</div>
+    <div class="menu-item" onclick="goFavorites(); toggleMenu()">Favorites</div>
+    <div class="menu-item" onclick="window.open('https://www.google.com','_blank'); toggleMenu()">External Link</div>
+    <div class="menu-item" onclick="translatePage(); toggleMenu()">Translator</div>
+  </div>
 
 <div class="container" id="mainContent">
   <div class="search-box">
@@ -474,38 +475,23 @@
     loadVideos();
   }
 
-  async function goCategories() {
-    const categories = ['Amateur','Anal','Big Tits','Blowjob','Lesbian','MILF','Teen','POV','Creampie','Cumshot','Asian','Ebony','Latina','Interracial','BDSM'];
-    let html = '<h2>Video Categories</h2><div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; padding:20px;">';
-    for (const cat of categories) {
-      let thumb = 'https://via.placeholder.com/260x400?text=' + cat;
-      try {
-        const params = new URLSearchParams({
-          query: cat,
-          per_page: 1,
-          thumbsize: 'big',
-          format: 'json'
-        });
-        const res = await fetch(API_BASE + '?' + params);
-        const data = await res.json();
-        if (data.videos && data.videos.length > 0) {
-          thumb = data.videos[0].default_thumb.src || thumb;
-        }
-      } catch (e) {
-        console.error('Failed to fetch thumb for ' + cat);
-      }
-      html += `
-        <div style="background:var(--card-bg); border-radius:12px; overflow:hidden; cursor:pointer;" onclick="goCategory('${cat}')">
-          <div style="aspect-ratio:9/16; background:#000; position:relative;">
-            <img src="${thumb}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
-            <div style="position:absolute; bottom:10px; left:10px; color:white; background:rgba(0,0,0,0.6); padding:5px 10px; border-radius:8px;">${cat}</div>
-          </div>
-        </div>`;
+  function goCategories() {
+      const categories = ['60 FPS', 'ASMR', 'Amateur', 'Anal', 'Asian', 'BBW', 'BDSM', 'Big Ass', 'Big Dick', 'Big Tits', 'Bisexual', 'Blonde', 'Blowjob', 'Bondage', 'Brunette', 'Bukkake', 'Creampie', 'Cumshot', 'Doctor', 'Double Penetration', 'Ebony', 'Fat', 'Fetish', 'Fisting', 'Footjob', 'For Women', 'Gay', 'Group Sex', 'HD Porn 1080p', 'HD Sex', 'HQ Porn', 'Handjob', 'Hardcore', 'Hentai', 'Homemade', 'Hotel', 'Housewives', 'Indian', 'Interracial', 'Japanese', 'Lesbian', 'Lingerie', 'MILF', 'Massage', 'Masturbation', 'Mature', 'Nurses', 'Office', 'Older Men', 'Orgy', 'Outdoor', 'POV', 'Petite', 'Pornstar', 'Public', 'Redhead', 'Shemale', 'Sleep', 'Small Tits', 'Squirt', 'Striptease', 'Students', 'Swinger', 'Teen', 'Threesome', 'Toys', 'Uniform', 'VR Porn', 'Vintage', 'Webcam'];
+      let html = '<h2>Video Categories</h2><div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; padding:20px;">';
+      categories.forEach(cat => {
+        html += `
+          <div style="background:var(--card-bg); border-radius:12px; overflow:hidden; cursor:pointer; text-align:center; padding:20px;" onclick="goCategory('${cat}')">
+            <h3 style="margin:0; font-size:0.8rem;">${cat}</h3>
+          </div>`;
+      });
+      html += '</div>';
+      html += '<button style="margin:30px auto; display:block; padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:30px;" onclick="goHome()">Back to Home</button>';
+      document.getElementById('mainContent').innerHTML = html;
     }
-    html += '</div>';
-    html += '<button style="margin:30px auto; display:block; padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:30px;" onclick="goHome()">Back to Home</button>';
-    document.getElementById('mainContent').innerHTML = html;
-  }
+
+    function goImageGenerator() {
+      document.getElementById('mainContent').innerHTML = '<h2>AI Image Generator (BasedLabs)</h2>';
+    }
 
   function goCategory(cat) {
     document.getElementById('mainContent').innerHTML = originalMainContent;
